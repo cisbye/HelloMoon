@@ -17,6 +17,24 @@ public class HelloMoonFragment extends Fragment {
     private Button mPlayButton;
     private Button mStopButton;
 
+    private boolean isNeedContinuePlay = false;
+
+    private void pausePlay() {
+        mPlayer.pause();
+        mPlayButton.setText(R.string.hellomoon_play);
+    }
+
+    private void resumePlay() {
+        mPlayer.play(getActivity());
+        mPlayButton.setText(R.string.hellomoon_pause);
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_hello_moon, container, false);
@@ -26,11 +44,11 @@ public class HelloMoonFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (mPlayer.isPlaying()) {
-                    mPlayer.pause();
-                    mPlayButton.setText(R.string.hellomoon_play);
+                    pausePlay();
+                    isNeedContinuePlay = false;
                 } else {
-                    mPlayer.play(getActivity());
-                    mPlayButton.setText(R.string.hellomoon_pause);
+                    resumePlay();
+                    isNeedContinuePlay = true;
                 }
             }
         });
@@ -40,10 +58,34 @@ public class HelloMoonFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 mPlayer.stop();
+                isNeedContinuePlay = false;
+                mPlayButton.setText(R.string.hellomoon_play);
+            }
+        });
+
+        mPlayer.setOnCompletionListener(new HelloMoonAudioPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(HelloMoonAudioPlayer audioPlayer) {
+                mPlayButton.setText(R.string.hellomoon_play);
             }
         });
 
         return v;
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        pausePlay();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        if (isNeedContinuePlay) {
+            resumePlay();
+        }
     }
 
     @Override
